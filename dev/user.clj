@@ -1,5 +1,6 @@
 (ns user
   (:require [hecatoncheires.server]
+            [hecatoncheires.collect]
             [ring.middleware.reload :refer [wrap-reload]]
             [figwheel-sidecar.repl-api :as figwheel]))
 
@@ -12,6 +13,7 @@
   (wrap-reload #'hecatoncheires.server/http-handler))
 
 (defn run []
+  (hecatoncheires.collect/init!)
   (figwheel/start-figwheel!))
 
 (def browser-repl figwheel/cljs-repl)

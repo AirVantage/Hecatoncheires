@@ -1,3 +1,9 @@
-h1 {
-  text-decoration: underline;
+.hec-user {
+    height: 42px;
+    width: 42px;
+    border-style: solid;
+    border-width: 1px;
+    text-align: center;
+    vertical-align: middle;
+    leine-height: 40px;
 }

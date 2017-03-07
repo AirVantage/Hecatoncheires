@@ -1,5 +1,27 @@
-# hecatoncheires
+# Hecatoncheires
 
+## Goal
+
+Follow deployement and operation of micro-service components from GitHub Repositories to AWS CloudFormation stacks.
+
+## Status
+
+This repository is in (very) early development stage.
+
+## Configuration
+
+The project use [Environ](https://github.com/weavejester/environ) to manage its
+configuration. You can either set configuration parameters through profiles.clj
+file, java property file or environment variables.
+
+Clojure | Provperty | Environement | Description
+------- | --------- | ------------ | -----------
+gh-auth | gh.auth | GH_AUTH | Authentication to GitHub account
+gh-org  | gh.org | GH_ORG | GitHub organisation in whitch components repositories are
+aws-region | aws.region | AWS_REGION | AWS Region on which CloudFormation Stacks are deployed
+
+AWS authentication is either done through [Amazonica](https://github.com/mcohen01/amazonica#authentication).
+You can either use local .aws directory or IAM roles.
 
 ## Development
 
@@ -102,39 +124,9 @@ browser and "headless". For example, to test with PhantomJS, use
 lein doo phantom
 ```
 
-## Deploying to Heroku
-
-This assumes you have a
-[Heroku account](https://signup.heroku.com/dc), have installed the
-[Heroku toolbelt](https://toolbelt.heroku.com/), and have done a
-`heroku login` before.
-
-``` sh
-git init
-git add -A
-git commit
-heroku create
-git push heroku master:master
-heroku open
-```
-
-## Running with Foreman
-
-Heroku uses [Foreman](http://ddollar.github.io/foreman/) to run your
-app, which uses the `Procfile` in your repository to figure out which
-server command to run. Heroku also compiles and runs your code with a
-Leiningen "production" profile, instead of "dev". To locally simulate
-what Heroku does you can do:
-
-``` sh
-lein with-profile -dev,+production uberjar && foreman start
-```
-
-Now your app is running at
-[http://localhost:5000](http://localhost:5000) in production mode.
 ## License
 
-Copyright © 2016 FIXME
+Copyright © 2016 Sierra Wireless
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
@@ -142,3 +134,15 @@ your option) any later version.
 ## Chestnut
 
 Created with [Chestnut](http://plexus.github.io/chestnut/) 0.14.0 (66af6f40).
+
+## FontAwesome
+
+Font Awesome by Dave Gandy - http://fontawesome.io
+
+## Bootstrap
+
+Bootstrap by Twitter - https://getbootstrap.com/
+
+## Tether
+
+Tether by HubSpot - http://tether.io/
