@@ -18,7 +18,7 @@
 (defn remove-tooltips! [component]
   (let [node (dom/node component)
         tooltips (js/$ "[data-toggle=\"tooltip\"]")]
-    (.tooltip tooltips "dispose")))
+    (.tooltip tooltips "destroy")))
 
 ;; Temp ids --------------------------------------------------------------------
 
@@ -44,8 +44,8 @@
                         :hec.user/name
                         :hec.user/avatar
                         click-fn] :as props} (om/props this)]
-            (html [:li.list-inline-item
-                   [:button.hec-user.rounded-circle.mb-1
+            (html [:li
+                   [:button.hec-user.btn.btn-default
                     {:type "button"
                      :style {:background-image (when avatar (str "url(" (.-rep avatar) ")"))}
                      :dangerouslySetInnerHTML {:__html "&nbsp"}
@@ -78,14 +78,16 @@
   (render [this]
           (let [{:keys [click-fn] :as users} (om/props this)
                 users (assoc users :click-fn click-fn)]
-            (html [:div.dropdown
-                   [:button.rounded-circle.hec-user.btn-secondary.fa.fa-plus.mb-1
+            (html [:div.btn-group
+                   [:button.hec-user.btn.btn-default.dropdown-toggle.fa.fa-plus
                     {:type "button"
-                     :data-toggle "dropdown"}]
+                     :data-toggle "dropdown"
+                     }]
                    [:div.dropdown-menu
-                    {:style {:width "270px"}}
-                    [:div.container
-                     (user-list users)]]]))))
+                    {:style {:width "300px"
+                             :padding-left "15px"
+                             :padding-right "15px"}}
+                    (user-list users)]]))))
 
 (def user-picker (om/factory UserPicker))
 
@@ -105,9 +107,10 @@
   (render [this]
           (let [{:keys [:gh.repo/name
                         :click-fn] :as props} (om/props this)]
-            (html [:li.list-inline-item
-                   [:button.btn.btn-secondary.btn-sm.mb-1
+            (html [:li
+                   [:button.btn.btn-default.btn-sm
                     {:type "button"
+                     :style {:margin-bottom "6px"}
                      :on-click #(when click-fn (click-fn props))}
                     [:span.fa.fa-github]
                     (str " " name)]]))))
@@ -140,21 +143,32 @@
                                         #(-> % :gh.repo/name string/lower-case
                                              (string/includes? (string/lower-case f)))
                                         r))))]
-            (html [:div.dropdown
-                   [:button.btn.btn-secondary.btn-sm.fa.fa-plus.mb-1
+            (html [:div.btn-group
+                   [:button.btn.btn-default.btn-sm.dropdown-toggle
                     {:type "button"
-                     :data-toggle "dropdown"}]
+                     :style {:margin-bottom "6px"}
+                     :data-toggle "dropdown"}
+                    [:span.fa.fa-plus]]
                    [:div.dropdown-menu
                     {:style {:width "400px"}}
-                    [:div.container
+                    [:div
+                     {:style {:padding "10px"
+                              :padding-left "15px"
+                              :padding-right "15px"}}
                      [:div.input-group
-                      [:input.form-control.mb-1#repo-picker-filter
-                       {:type "text" :name "RepoFilter" :value f
+                      [:span.input-group-addon
+                       [:span.fa.fa-github]]
+                      [:input.form-control
+                       {:type "text" :value f
                         :on-change #(om/update-state! this assoc
                                                       :f
                                                       (.. % -target -value))}]]]
-                    [:div.dropdown-divider]
-                    [:div.container
+
+                    [:div.divider]
+                    [:div
+                     {:style {:padding "10px"
+                              :padding-left "15px"
+                              :padding-right "15px"}}
                      (repo-list repos)]]]))))
 
 (def repo-picker (om/factory RepoPicker))
@@ -175,9 +189,10 @@
   (render [this]
           (let [{:keys [:aws.cf.stack/name
                         :click-fn] :as props} (om/props this)]
-            (html [:li.list-inline-item
-                   [:button.btn.btn-secondary.btn-sm.mb-1
+            (html [:li
+                   [:button.btn.btn-default.btn-sm
                     {:type "button"
+                     :style {:margin-bottom "6px"}
                      :on-click #(when click-fn (click-fn props))}
                     [:span.fa.fa-list]
                     (str " " name)]]))))
@@ -210,21 +225,32 @@
                                          #(-> % :aws.cf.stack/name string/lower-case
                                               (string/includes? (string/lower-case f)))
                                          r))))]
-            (html [:div.dropdown
-                   [:button.btn.btn-secondary.btn-sm.fa.fa-plus.mb-1
+            (html [:div.btn-group
+                   [:button.btn.btn-default.btn-sm.dropdown-toggle
                     {:type "button"
-                     :data-toggle "dropdown"}]
+                     :style {:margin-bottom "6px"}
+                     :data-toggle "dropdown"}
+                    [:span.fa.fa-plus]]
                    [:div.dropdown-menu
                     {:style {:width "400px"}}
-                    [:div.container
+                    [:div
+                     {:style {:padding "10px"
+                              :padding-left "15px"
+                              :padding-right "15px"}}
                      [:div.input-group
-                      [:input.form-control.mb-1#repo-picker-filter
-                       {:type "text" :name "RepoFilter" :value f
+                      [:span.input-group-addon
+                       [:span.fa.fa-list]]
+                      [:input.form-control
+                       {:type "text" :value f
                         :on-change #(om/update-state! this assoc
                                                       :f
                                                       (.. % -target -value))}]]]
-                    [:div.dropdown-divider]
-                    [:div.container
+
+                    [:div.divider]
+                    [:div
+                     {:style {:padding "10px"
+                              :padding-left "15px"
+                              :padding-right "15px"}}
                      (stack-list stacks)]]]))))
 
 (def stack-picker (om/factory StackPicker))
@@ -255,12 +281,12 @@
                         :hec.component/repo
                         :hec.component/stack] :as props} (om/props this)]
             (html [:div.col-md-12
-                   [:div.card.mb-3
-                    [:div.card-block
+                   [:div.panel.panel-default
+                    [:div.panel-body
                      [:div.row
                       [:div.col-md-2
-                       [:h4.card-title name]
-                       [:h6.card-subtitle.mb-2.text-muted id]]
+                       [:h4.panel-title name]
+                       [:p.text-muted id]]
                       [:div.col-md-1 (user-list {:users leader})]
                       [:div.col-md-4 (repo-list {:repos repo})]
                       [:div.col-md-4 (stack-list {:stacks stack})]]]]]))))
@@ -324,7 +350,7 @@
                                                                  [:hec.component/leader]
                                                                  disj id))))
                           leaders)
-                     [:li.list-inline-item
+                     [:li
                       (user-picker {:users users
                                     :click-fn (fn [{:keys [:db/id]}]
                                                 (om/update-state! this update-in
@@ -390,12 +416,12 @@
                    [:div.modal-dialog.modal-lg {:role "document"}
                     [:div.modal-content
                      [:div.modal-header
-                      [:h5.modal-title "New component"]
                       [:button.close {:type "button"
                                       :data-dismiss "modal"
                                       :aria-label "Close"}
                        [:span {:aria-hidden "true"
-                               :dangerouslySetInnerHTML {:__html "&times;"}}]]]
+                               :dangerouslySetInnerHTML {:__html "&times;"}}]]
+                      [:h4.modal-title "New component"]]
                      [:div.modal-body
                       (component-form props)]]]]))))
 
@@ -424,15 +450,15 @@
                         :hecatoncheires.core/stacks
                         :hecatoncheires.core/components]} (om/props this)]
             (html [:div
-                   [:nav.navbar.sticky-top.navbar-inverse.bg-inverse
-                    [:h1.navbar-brand "Hecatoncheires"]]
+                   [:nav.navbar.navbar-inverse.navbar-fixed-top
+                    [:a.navbar-brand "Hecatoncheires"]]
                    [:br]
                    [:div.container
                     [:div.row
                      [:div.col-md-11
                       [:h1 "Components"]]
                      [:div.col-md-1
-                      [:button.btn.btn-secondary.btn-sm.pull-right.border-0.fa.fa-plus
+                      [:button.btn.btn-default.btn-sm.pull-right.border-0.fa.fa-plus
                        {:type "button"
                         :data-toggle "modal"
                         :data-target (str "#" "component-form-modal")}]]]

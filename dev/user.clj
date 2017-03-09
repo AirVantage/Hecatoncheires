@@ -1,6 +1,7 @@
 (ns user
-  (:require [hecatoncheires.server]
-            [hecatoncheires.collect]
+  (:require [hecatoncheires.system :as system]
+            [com.stuartsierra.component :as component]
+            [environ.core :refer [env]]
             [ring.middleware.reload :refer [wrap-reload]]
             [figwheel-sidecar.repl-api :as figwheel]))
 
@@ -9,11 +10,27 @@
 ;; degraded performance.
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* :warn-on-boxed)
-(def http-handler
-  (wrap-reload #'hecatoncheires.server/http-handler))
+
+(defonce servlet-system (atom nil))
+
+(defn dev-start []
+  (let [sys (system/prod-system env)
+        sys' (component/start sys)]
+    (reset! servlet-system sys')
+    sys'))
+
+(defn dev-stop []
+  (swap! servlet-system component/stop))
+
+(defn dev-restart []
+  (dev-stop)
+  (dev-start))
 
 (defn run []
-  (hecatoncheires.collect/init!)
-  (figwheel/start-figwheel!))
+  (figwheel/start-figwheel!)
+  (dev-start))
 
 (def browser-repl figwheel/cljs-repl)
+
+(.addShutdownHook (Runtime/getRuntime)
+                  (Thread. #(dev-stop)))

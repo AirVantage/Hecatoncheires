@@ -16,6 +16,8 @@ file, java property file or environment variables.
 
 Clojure | Provperty | Environement | Description
 ------- | --------- | ------------ | -----------
+db-uri | db.uri | DB_URI | URI of the datomic database
+web-port | web.port | WEB_PORT | TCP port for the web server
 gh-auth | gh.auth | GH_AUTH | Authentication to GitHub account
 gh-org  | gh.org | GH_ORG | GitHub organisation in whitch components repositories are
 aws-region | aws.region | AWS_REGION | AWS Region on which CloudFormation Stacks are deployed

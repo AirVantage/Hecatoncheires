@@ -1,5 +1,6 @@
 (ns hecatoncheires.db
-  (:require [datomic.api :as d]))
+  (:require [datomic.api :as d]
+            [com.stuartsierra.component :as component]))
 
 
 ;; -----------------------------------------------------------------------------
@@ -133,6 +134,11 @@
     :db/valueType :db.type/ref
     :db/cardinality :db.cardinality/many}])
 
+;; -----------------------------------------------------------------------------
+;; Initial data
+;; -----------------------------------------------------------------------------
+
+(def initial-data [])
 
 ;; -----------------------------------------------------------------------------
 ;; Init
@@ -144,10 +150,10 @@
 ;; Queries
 ;; -----------------------------------------------------------------------------
 
-(defn query [q]
+(defn query [conn q]
   (d/q q (d/db conn)))
 
-(defn transact [t]
+(defn transact [conn t]
   (d/transact conn t))
 
 (defn get-users []
@@ -173,3 +179,20 @@
 (defn create-component [component]
                                         ;(d/transact conn [component])
   (println component))
+
+;; -----------------------------------------------------------------------------
+;; Component
+;; -----------------------------------------------------------------------------
+
+(defrecord DatomicDatabase [uri schema initial-data connection]
+  component/Lifecycle
+  (start [component]
+    (d/create-database uri)
+    (let [c (d/connect uri)]
+      @(d/transact c schema)
+      @(d/transact c initial-data)
+      (assoc component :connection c)))
+  (stop [component]))
+
+(defn new-database [db-uri]
+  (DatomicDatabase. db-uri schema initial-data nil))

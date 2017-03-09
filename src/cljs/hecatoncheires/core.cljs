@@ -1,5 +1,7 @@
 (ns hecatoncheires.core
-  (:require [goog.dom :as gdom]
+  (:require cljsjs.jquery
+            cljsjs.bootstrap
+            [goog.dom :as gdom]
             [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
             [sablono.core :as html :refer-macros [html]]

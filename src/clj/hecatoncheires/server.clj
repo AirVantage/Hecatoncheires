@@ -1,63 +1,63 @@
 (ns hecatoncheires.server
-  (:require [clojure.java.io :as io]
-            [compojure.core :refer [ANY GET PUT POST DELETE defroutes]]
+  (:require [compojure.core :refer [ANY GET PUT POST DELETE defroutes]]
             [compojure.route :refer [resources]]
+            [ring.util.response :refer [response file-response resource-response]]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
             [ring.middleware.gzip :refer [wrap-gzip]]
             [ring.middleware.logger :refer [wrap-with-logger]]
-            [environ.core :refer [env]]
+            [ring.middleware.resource :refer [wrap-resource]]
             [org.httpkit.server :refer [run-server]]
-            [cognitect.transit :as transit]
-            [hecatoncheires.db :refer [get-users get-repos get-stacks get-components create-component] :as db])
-  (:import (java.io ByteArrayOutputStream))
-  (:gen-class))
+            [hecatoncheires.db :refer [get-users get-repos get-stacks get-components create-component] :as db]
+            [hecatoncheires.middleware
+             :refer [wrap-transit-body wrap-transit-response
+                     wrap-db]]
+            [com.stuartsierra.component :as component]))
 
-(defn- t-write [x]
-  (let [baos (ByteArrayOutputStream.)
-        w    (transit/writer baos :json)
-        _    (transit/write w x)
-        ret  (.toString baos)]
-    (.reset baos)
-    ret))
-
-(defn t-read [bis]
-  (let [r (transit/reader bis :json)
-        ret (transit/read r)]
-    ret))
-
-(defn query-handler [{:keys [body]}]
-  (let [q (t-read body)
-        _ (clojure.pprint/pprint q)
-        ret (db/query q)]
+(defn query-handler [{:keys [body db-conn]}]
+  (let [ret (db/query db-conn body)]
     {:status 200
-     :headers {"Content-Type" "application/transit+json; charset=utf-8"}
-     :body (t-write ret)}))
+     :headers {"Content-Type" "application/transit+json"}
+     :body ret}))
 
-(defn transact-handler [{:keys [body]}]
-  (let [t (t-read body)
-        ret @(db/transact t)]
+(defn transact-handler [{:keys [body db-conn]}]
+  (let [ret @(db/transact db-conn body)]
     {:status 200
-     :headers {"Content-Type" "application/transit+json; charset=utf-8"}
-     :body (t-write (select-keys ret [:tempids]))
+     :headers {"Content-Type" "application/transit+json"}
+     :body (select-keys ret [:tempids])
      }))
 
 (defroutes routes
   (GET "/" _
-    {:status 200
-     :headers {"Content-Type" "text/html; charset=utf-8"}
-     :body (io/input-stream (io/resource "public/index.html"))})
+       (assoc (resource-response (str "index.html") {:root "public"})
+              :headers {"Content-Type" "text/html"}))
   (POST "/api/query" req
         (query-handler req))
   (POST "/api/transact" req
-        (transact-handler req))
-  (resources "/"))
+        (transact-handler req)))
 
-(def http-handler
+(defn http-handler [conn]
   (-> routes
       (wrap-defaults api-defaults)
+      (wrap-db conn)
+      wrap-transit-body
+      wrap-transit-response
       wrap-with-logger
-      wrap-gzip))
+      wrap-gzip
+      (wrap-resource "public")))
 
-(defn -main [& [port]]
-  (let [port (Integer. (or port (env :port) 10555))]
-    (run-server http-handler {:port port :join? false})))
+;; -----------------------------------------------------------------------------
+;; Component
+;; -----------------------------------------------------------------------------
+
+(defrecord WebServer [port server db]
+  component/Lifecycle
+  (start [component]
+    (let [conn (:connection db)
+          handler (http-handler conn)
+          server (run-server handler {:port port :join? false})]
+      (assoc component :server server)))
+  (stop [component]
+    (server :timeout 100)))
+
+(defn new-webserver [port]
+  (WebServer. port nil nil))

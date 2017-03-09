@@ -24,14 +24,20 @@
                  [clj-http "2.3.0"]
                  [com.cognitect/transit-clj "0.8.297"]
                  [com.datomic/datomic-free "0.9.5554"
-                  :exclusions [org.slf4j/slf4j-nop org.slf4j/log4j-over-slf4j]]
+                  :exclusions [org.slf4j/slf4j-nop
+                               org.slf4j/log4j-over-slf4j
+                               com.google.guava/guava]]
                  [org.clojure/core.async "0.2.395"]
+                 [com.stuartsierra/component "0.3.2"]
+                 [com.google.guava/guava "19.0"]
                  ;; Client -----------------------------------------------------
                  [org.omcljs/om "1.0.0-alpha47"]
                  [compassus "1.0.0-alpha2"]
                  [sablono "0.7.7"]
                  [cljs-http "0.1.42"]
-                 [prismatic/dommy "1.1.0"]]
+                 [prismatic/dommy "1.1.0"]
+                 [cljsjs/jquery "2.2.4-0"]
+                 [cljsjs/bootstrap "3.3.6-1"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-environ "1.0.3"]]
@@ -47,7 +53,7 @@
   :uberjar-name "hecatoncheires.jar"
 
   ;; Use `lein run` if you just want to start a HTTP server, without figwheel
-  :main hecatoncheires.server
+  :main hecatoncheires.core
 
   ;; nREPL by default starts in the :main namespace, we want to start in `user`
   ;; because that's where our development helper functions like (run) and
@@ -66,12 +72,14 @@
                            :asset-path "js/compiled/out"
                            :output-to "resources/public/js/compiled/hecatoncheires.js"
                            :output-dir "resources/public/js/compiled/out"
+                           :parallel-build true
                            :source-map-timestamp true}}
 
                {:id "test"
                 :source-paths ["src/cljs" "test/cljs" "src/cljc" "test/cljc"]
                 :compiler {:output-to "resources/public/js/compiled/testable.js"
                            :main hecatoncheires.test-runner
+                           :parallel-build true
                            :optimizations :none}}
 
                {:id "min"
@@ -80,6 +88,9 @@
                 :compiler {:main hecatoncheires.core
                            :output-to "resources/public/js/compiled/hecatoncheires.js"
                            :output-dir "target"
+                           :externs ["src/js/externs.js"]
+                           :closure-defines {goog.DEBUG false}
+                           :parallel-build true
                            :source-map-timestamp true
                            :optimizations :advanced
                            :pretty-print false}}]}
@@ -99,7 +110,7 @@
              ;; assets and API endpoints can all be accessed on the same host
              ;; and port. If you prefer a separate server process then take this
              ;; out and start the server with `lein run`.
-             :ring-handler user/http-handler
+             ;; :ring-handler user/http-handler
 
              ;; Start an nREPL server into the running figwheel process. We
              ;; don't do this, instead we do the opposite, running figwheel from

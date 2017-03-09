@@ -1,4 +1,5 @@
 .hec-user {
+    border-radius: 50%;
     height: 42px;
     width: 42px;
     border-style: solid;
@@ -6,4 +7,11 @@
     text-align: center;
     vertical-align: middle;
     leine-height: 40px;
+    margin-bottom: 6px;
 }
+
+.border-0 {
+    border: 0 !important;
+}
+
+body { padding-top: 70px; }

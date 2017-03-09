@@ -2,7 +2,7 @@
   (:require [datomic.api :as d]
             [hecatoncheires.aws :refer [get-stacks]]
             [hecatoncheires.github :refer [get-users get-repos]]
-            [hecatoncheires.db :refer [conn]]))
+            [com.stuartsierra.component :as component]))
 
 (defn gh-to-hec-user [{:keys [:db/id
                               :gh.user/name]}]
@@ -20,9 +20,19 @@
         hec-users (map gh-to-hec-user gh-users)]
     (d/transact conn hec-users)))
 
-(defn init! []
-  (d/transact conn (get-stacks))
-  (d/transact conn (get-repos))
-  (d/transact conn (get-users))
-  (generate-users! conn)
-  nil)
+;; -----------------------------------------------------------------------------
+;; Component
+;; -----------------------------------------------------------------------------
+
+(defrecord Collector [db]
+  component/Lifecycle
+  (start [component]
+    (let [conn (:connection db)]
+      (d/transact conn (get-stacks))
+      (d/transact conn (get-repos))
+      (d/transact conn (get-users))
+      (generate-users! conn)))
+  (stop [component]))
+
+(defn new-collector []
+   (Collector. nil))
