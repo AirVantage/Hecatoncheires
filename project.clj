@@ -31,7 +31,7 @@
                  [com.stuartsierra/component "0.3.2"]
                  [com.google.guava/guava "19.0"]
                  ;; Client -----------------------------------------------------
-                 [org.omcljs/om "1.0.0-alpha47"]
+                 [org.omcljs/om "1.0.0-alpha48"]
                  [compassus "1.0.0-alpha2"]
                  [sablono "0.7.7"]
                  [cljs-http "0.1.42"]

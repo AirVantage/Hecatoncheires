@@ -33,8 +33,8 @@
 
 (defui UserItem
   static om/Ident
-  (ident [this {:keys [:db/id]}]
-         [:db/id id])
+  (ident [this {:keys [db/id] }]
+         [:user/by-id id])
   static om/IQuery
   (query [this]
          [:db/id :hec.user/name :hec.user/avatar])
@@ -99,7 +99,7 @@
 (defui RepoItem
   static om/Ident
   (ident [this {:keys [:db/id]}]
-         [:db/id id])
+         [:repos/by-id id])
   static om/IQuery
   (query [this]
          [:db/id :gh.repo/name])
@@ -181,7 +181,7 @@
 (defui StackItem
   static om/Ident
   (ident [this {:keys [:db/id]}]
-         [:db/id id])
+         [:stacks/by-id id])
   static om/IQuery
   (query [this]
          [:db/id :aws.cf.stack/name])
@@ -263,7 +263,7 @@
 (defui ComponentItem
   static om/Ident
   (ident [this {:keys [:db/id]}]
-         [:db/id id])
+         [:components/by-id id])
   static om/IQuery
   (query [this]
          (let [user-q (om/get-query UserItem)
@@ -396,8 +396,9 @@
                                       component (assoc component :db/id (get-temp-id))
                                       ]
                                   (om/transact! reconciler
-                                                `[(component/create
-                                                   ~component)])
+                                                `[(component/create ~component)
+                                                  :components :users
+                                                  :stacks :repos])
                                   (om/react-set-state! this init-form)
                                   )}
                     "Create"]]))))

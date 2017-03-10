@@ -1,5 +1,6 @@
 (ns hecatoncheires.server
-  (:require [compojure.core :refer [ANY GET PUT POST DELETE defroutes]]
+  (:require [clojure.walk :as walk]
+            [compojure.core :refer [ANY GET PUT POST DELETE defroutes]]
             [compojure.route :refer [resources]]
             [ring.util.response :refer [response file-response resource-response]]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
@@ -7,39 +8,38 @@
             [ring.middleware.logger :refer [wrap-with-logger]]
             [ring.middleware.resource :refer [wrap-resource]]
             [org.httpkit.server :refer [run-server]]
-            [hecatoncheires.db :refer [get-users get-repos get-stacks get-components create-component] :as db]
+            [om.next.server :as om]
+            [hecatoncheires.parser :as parser]
             [hecatoncheires.middleware
-             :refer [wrap-transit-body wrap-transit-response
+             :refer [wrap-transit-params wrap-transit-response
                      wrap-db]]
             [com.stuartsierra.component :as component]))
 
-(defn query-handler [{:keys [body db-conn]}]
-  (let [ret (db/query db-conn body)]
+(defn api [req]
+  (let [{:keys [transit-params db-conn]} req
+        data ((om/parser {:read parser/readf :mutate parser/mutatef})
+              {:conn db-conn} (first transit-params))
+        data' (walk/postwalk (fn [x]
+                               (if (and (sequential? x) (= :result (first x)))
+                                 (update-in x [1] dissoc :db-before :db-after :tx-data)
+                                 x))
+                             data)]
     {:status 200
      :headers {"Content-Type" "application/transit+json"}
-     :body ret}))
-
-(defn transact-handler [{:keys [body db-conn]}]
-  (let [ret @(db/transact db-conn body)]
-    {:status 200
-     :headers {"Content-Type" "application/transit+json"}
-     :body (select-keys ret [:tempids])
-     }))
+     :body data'}))
 
 (defroutes routes
   (GET "/" _
        (assoc (resource-response (str "index.html") {:root "public"})
               :headers {"Content-Type" "text/html"}))
-  (POST "/api/query" req
-        (query-handler req))
-  (POST "/api/transact" req
-        (transact-handler req)))
+  (POST "/api" req
+        (api req) ))
 
 (defn http-handler [conn]
   (-> routes
       (wrap-defaults api-defaults)
       (wrap-db conn)
-      wrap-transit-body
+      wrap-transit-params
       wrap-transit-response
       wrap-with-logger
       wrap-gzip

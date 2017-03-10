@@ -4,16 +4,6 @@
 
 
 ;; -----------------------------------------------------------------------------
-;; Connection
-;; -----------------------------------------------------------------------------
-
-(def db-uri-base (str "datomic:mem://" (d/squuid)))
-
-(d/create-database db-uri-base)
-
-(defonce conn (d/connect db-uri-base))
-
-;; -----------------------------------------------------------------------------
 ;; Schema
 ;; -----------------------------------------------------------------------------
 
@@ -139,46 +129,6 @@
 ;; -----------------------------------------------------------------------------
 
 (def initial-data [])
-
-;; -----------------------------------------------------------------------------
-;; Init
-;; -----------------------------------------------------------------------------
-
-(d/transact conn schema)
-
-;; -----------------------------------------------------------------------------
-;; Queries
-;; -----------------------------------------------------------------------------
-
-(defn query [conn q]
-  (d/q q (d/db conn)))
-
-(defn transact [conn t]
-  (d/transact conn t))
-
-(defn get-users []
-  (d/q '[:find [(pull ?e [:db/id :hec.user/name :hec.user/avatar]) ...]
-         :where [?e :hec.user/name]]
-       (d/db conn)))
-
-(defn get-repos []
-  (d/q '[:find [(pull ?e [:db/id :gh.repo/name]) ...]
-         :where [?e :gh.repo/id]]
-       (d/db conn)))
-
-(defn get-stacks []
-  (d/q '[:find [(pull ?e [:db/id :aws.cf.stack/name]) ...]
-         :where [?e :aws.cf.stack/id]]
-       (d/db conn)))
-
-(defn get-components []
-  (d/q '[:find [(pull ?e [*]) ...]
-         :where [?e :hec.component/name]]
-       (d/db conn)))
-
-(defn create-component [component]
-                                        ;(d/transact conn [component])
-  (println component))
 
 ;; -----------------------------------------------------------------------------
 ;; Component
