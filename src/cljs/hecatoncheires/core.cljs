@@ -19,10 +19,10 @@
 ;; -----------------------------------------------------------------------------
 
 (def init-data
-  {::users []
-   ::stacks []
-   ::repos []
-   ::components []})
+  {:users []
+   :stacks []
+   :repos []
+   :components []})
 
 ;; -----------------------------------------------------------------------------
 ;; Parsing
@@ -31,18 +31,18 @@
 (defn q [st k query]
   (om/db->tree query (get st k) st))
 
-(derive ::users ::basics)
-(derive ::stacks ::basics)
-(derive ::repos ::basics)
-(derive ::components ::basics)
+(derive :users :basics)
+(derive :stacks :basics)
+(derive :repos :basics)
+(derive :components :basics)
 
 (defmulti read om/dispatch)
 
-(defmethod read ::basics
+(defmethod read :basics
   [{:keys [query state ast]} k _]
   (let [st @state]
     {:value (q st k query)
-     ::query ast
+     :query ast
      }))
 
 (defmethod read :default
@@ -66,32 +66,32 @@
     (swap! state
            #(-> %
                 (assoc-in [:db/id id] component)
-                (update-in [::components] conj [:db/id id])))))
+                (update-in [:components] conj [:db/id id])))))
 
 (defmethod mutate 'component/create
   [{:keys [state] :as env} key component]
-  {:keys [::components]
-   ::transact true
+  {:keys [:components]
+   :transact true
    :action #(merge-component state component)})
 
 ;; -----------------------------------------------------------------------------
 ;; Remote
 ;; -----------------------------------------------------------------------------
 
-(def query-selectors {::users '[?e :hec.user/name]
-                      ::repos '[?e :gh.repo/id]
-                      ::stacks '[?e :aws.cf.stack/id]
-                      ::components '[?e :hec.component/name]})
+(def query-selectors {:users '[?e :hec.user/name]
+                      :repos '[?e :gh.repo/id]
+                      :stacks '[?e :aws.cf.stack/id]
+                      :components '[?e :hec.component/name]})
 
 (defn query-builder [k q]
   `[:find [(~'pull ~'?e ~q) ...]
     :where ~(query-selectors k)])
 
 (def mutation-key
-  {'component/create ::components})
+  {'component/create :components})
 
 (defn send [req cb]
-  (let [{:keys [::query ::transact]} req]
+  (let [{:keys [:query :transact]} req]
     (doseq [a query]
       (let [[k q] (first a)]
         (go (cb (->> (<! (http/post "/api/query" {:transit-params (query-builder k q)}))
@@ -126,7 +126,7 @@
     :normalize true
     :parser (om/parser {:read read :mutate mutate})
     :send send
-    :remotes [::query ::transact]
+    :remotes [:query :transact]
     :merge my-merge}))
 
 (om/add-root! reconciler

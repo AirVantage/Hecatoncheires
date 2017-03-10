@@ -439,16 +439,13 @@
                repo-q (om/get-query RepoItem)
                stack-q (om/get-query StackItem)
                component-q (om/get-query ComponentItem)]
-           `[{:hecatoncheires.core/users ~user-q}
-             {:hecatoncheires.core/repos ~repo-q}
-             {:hecatoncheires.core/stacks ~stack-q}
-             {:hecatoncheires.core/components ~component-q}]))
+           `[{:users ~user-q}
+             {:repos ~repo-q}
+             {:stacks ~stack-q}
+             {:components ~component-q}]))
   Object
   (render [this]
-          (let [{:keys [:hecatoncheires.core/users
-                        :hecatoncheires.core/repos
-                        :hecatoncheires.core/stacks
-                        :hecatoncheires.core/components]} (om/props this)]
+          (let [{:keys [users repos stacks components]} (om/props this)]
             (html [:div
                    [:nav.navbar.navbar-inverse.navbar-fixed-top
                     [:a.navbar-brand "Hecatoncheires"]]
